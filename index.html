@@ -49,7 +49,7 @@
             .then(response => response.json())
             .then(data => {
                 const message = data.result.text;
-                score = parseInt(message.match(/\d+/)[0]) || 0; // Витягуємо очки
+                score = parseInt(message.match(/\d+/)[0]) || 0; // Витягуємо очки з відповіді
                 scoreDisplay.textContent = score;
             })
             .catch(error => {
@@ -57,7 +57,7 @@
             });
         }
 
-        // Збереження очок
+        // Збереження очок у базі через API бота
         function saveScore() {
             fetch(`https://api.telegram.org/bot${botToken}/sendMessage`, {
                 method: "POST",
