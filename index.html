@@ -1,0 +1,39 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Гра з мандаринкою</title>
+    <style>
+        body {
+            text-align: center;
+            background-color: #1a1a1a;
+            color: white;
+            font-family: Arial, sans-serif;
+        }
+        img {
+            width: 150px;
+            cursor: pointer;
+        }
+        .score {
+            margin-top: 20px;
+            font-size: 24px;
+        }
+    </style>
+</head>
+<body>
+    <h1>Натискай на мандаринку!</h1>
+    <img src="https://your-image-url.com/mandarin.png" alt="Мандаринка" id="mandarin">
+    <div class="score">Очки: <span id="score">0</span></div>
+    <script>
+        let score = 0;
+        const mandarin = document.getElementById("mandarin");
+        const scoreDisplay = document.getElementById("score");
+
+        mandarin.addEventListener("click", () => {
+            score++;
+            scoreDisplay.textContent = score;
+        });
+    </script>
+</body>
+</html>
