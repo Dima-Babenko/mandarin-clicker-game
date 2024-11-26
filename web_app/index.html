@@ -1,0 +1,88 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Гра з мандаринкою</title>
+    <style>
+        body {
+            text-align: center;
+            background-color: #1a1a1a;
+            color: white;
+            font-family: Arial, sans-serif;
+        }
+        img {
+            width: 150px;
+            cursor: pointer;
+        }
+        .score {
+            margin-top: 20px;
+            font-size: 24px;
+        }
+    </style>
+</head>
+<body>
+    <h1>Натискай на мандаринку!</h1>
+    <img src="mandarinka.png" alt="Mandarin" id="mandarin">
+    <div class="score">Очки: <span id="score">0</span></div>
+    <script>
+        const urlParams = new URLSearchParams(window.location.search);
+        const userId = urlParams.get("id"); // Отримуємо ID гравця з URL
+        const botToken = "Ваш_токен_бота";
+
+        let score = 0;
+        const mandarin = document.getElementById("mandarin");
+        const scoreDisplay = document.getElementById("score");
+
+        // Завантаження очок із бази через Telegram API
+        function loadScore() {
+            fetch(`https://api.telegram.org/bot${botToken}/sendMessage`, {
+                method: "POST",
+                headers: {
+                    "Content-Type": "application/json",
+                },
+                body: JSON.stringify({
+                    chat_id: userId,
+                    text: `/start`
+                }),
+            })
+            .then(response => response.json())
+            .then(data => {
+                const message = data.result.text;
+                const match = message.match(/\d+/); // Отримуємо число з тексту
+                score = match ? parseInt(match[0]) : 0;
+                scoreDisplay.textContent = score;
+            })
+            .catch(error => console.error("Помилка завантаження очок:", error));
+        }
+
+        // Збереження очок у базу даних через API
+        function saveScore() {
+            fetch(`https://api.telegram.org/bot${botToken}/sendMessage`, {
+                method: "POST",
+                headers: {
+                    "Content-Type": "application/json",
+                },
+                body: JSON.stringify({
+                    chat_id: userId,
+                    text: `/save_score ${userId} ${score}`
+                }),
+            })
+            .then(response => response.json())
+            .catch(error => console.error("Помилка збереження очок:", error));
+        }
+
+        // Обробка натискання на мандаринку
+        mandarin.addEventListener("click", () => {
+            score++;
+            scoreDisplay.textContent = score;
+        });
+
+        // Збереження очок при виході
+        window.addEventListener("beforeunload", saveScore);
+
+        // Завантаження очок при вході
+        loadScore();
+    </script>
+</body>
+</html>
