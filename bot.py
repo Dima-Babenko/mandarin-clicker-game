@@ -2,11 +2,11 @@ import sqlite3
 from telegram import Update, InlineKeyboardButton, InlineKeyboardMarkup, WebAppInfo
 from telegram.ext import Application, CommandHandler, ContextTypes
 
-# Підключення до бази даних
+# Налаштування бази даних
 conn = sqlite3.connect("scores.db", check_same_thread=False)
 cursor = conn.cursor()
 
-# Створюємо таблицю для збереження очок
+# Створення таблиці для збереження даних гравців
 cursor.execute("""
 CREATE TABLE IF NOT EXISTS players (
     player_id INTEGER PRIMARY KEY,
@@ -16,53 +16,54 @@ CREATE TABLE IF NOT EXISTS players (
 conn.commit()
 
 async def start(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
-    """Обробка команди /start."""
+    """Обробляє команду /start, надсилає очки гравця та кнопку для запуску гри."""
     user_id = update.effective_user.id
     user_name = update.effective_user.first_name
 
-    # Перевіряємо, чи є користувач у базі
+    # Отримуємо очки гравця з бази
     cursor.execute("SELECT score FROM players WHERE player_id = ?", (user_id,))
     result = cursor.fetchone()
 
     if result is None:
-        # Якщо гравця немає в базі, додаємо
+        # Якщо гравця немає, додаємо його до бази
         cursor.execute("INSERT INTO players (player_id, score) VALUES (?, ?)", (user_id, 0))
         conn.commit()
         current_score = 0
     else:
         current_score = result[0]
 
-    # Привітання з поточним рахунком
-    await update.message.reply_text(f"Привіт, {user_name}! У тебе {current_score} очків. Продовжуй грати!")
+    # Відповідь із поточним рахунком
+    await update.message.reply_text(f"Привіт, {user_name}! У тебе {current_score} очків.")
 
-    # Кнопка для запуску гри
+    # Кнопка для гри
     keyboard = [
         [InlineKeyboardButton("Розпочати гру", web_app=WebAppInfo(url=f"https://dima-babenko.github.io/mandarin-clicker-game/?id={user_id}"))]
     ]
     reply_markup = InlineKeyboardMarkup(keyboard)
-    await update.message.reply_text("Натисни 'Розпочати гру', щоб перейти до гри!", reply_markup=reply_markup)
+    await update.message.reply_text("Натисни 'Розпочати гру', щоб грати!", reply_markup=reply_markup)
 
 async def save_score(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
-    """Збереження очок від гри."""
-    # API-запит з даними від гри
-    user_id = int(update.message.text.split()[1])
-    new_score = int(update.message.text.split()[2])
+    """Оновлює очки гравця в базі."""
+    # Отримуємо текст, який містить `user_id` та новий `score`
+    data = update.message.text.split()
+    user_id = int(data[1])
+    new_score = int(data[2])
 
-    # Оновлюємо очки в базі даних
+    # Оновлюємо очки гравця
     cursor.execute("UPDATE players SET score = ? WHERE player_id = ?", (new_score, user_id))
     conn.commit()
-    await update.message.reply_text(f"Очки гравця {user_id} збережено: {new_score}")
+    await update.message.reply_text(f"Очки гравця {user_id} оновлено: {new_score}")
 
 def main():
-    """Запуск бота."""
-    TOKEN = "7699969593:AAEUzA5h4p69xj572NKUfYo4sgX-scWRwhk"
+    """Запуск Telegram-бота."""
+    TOKEN = "Ваш_токен_бота"
     application = Application.builder().token(TOKEN).build()
 
-    # Додаємо обробники команд
+    # Обробники команд
     application.add_handler(CommandHandler("start", start))
     application.add_handler(CommandHandler("save_score", save_score))
 
-    # Запускаємо бота
+    # Запуск бота
     application.run_polling()
 
 if __name__ == "__main__":

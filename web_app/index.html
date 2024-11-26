@@ -34,7 +34,7 @@
         const mandarin = document.getElementById("mandarin");
         const scoreDisplay = document.getElementById("score");
 
-        // Завантаження очок із бази через Telegram API
+        // Завантаження очок із бази даних через Telegram
         function loadScore() {
             fetch(`https://api.telegram.org/bot${botToken}/sendMessage`, {
                 method: "POST",
@@ -43,20 +43,20 @@
                 },
                 body: JSON.stringify({
                     chat_id: userId,
-                    text: `/start`
+                    text: "/start"
                 }),
             })
             .then(response => response.json())
             .then(data => {
-                const message = data.result.text;
-                const match = message.match(/\d+/); // Отримуємо число з тексту
+                const message = data.result[0].text;
+                const match = message.match(/\d+/); // Витягуємо очки з тексту
                 score = match ? parseInt(match[0]) : 0;
                 scoreDisplay.textContent = score;
             })
             .catch(error => console.error("Помилка завантаження очок:", error));
         }
 
-        // Збереження очок у базу даних через API
+        // Збереження очок у базі даних через Telegram
         function saveScore() {
             fetch(`https://api.telegram.org/bot${botToken}/sendMessage`, {
                 method: "POST",
