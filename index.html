@@ -23,7 +23,7 @@
 </head>
 <body>
     <h1>Натискай на мандаринку!</h1>
-    <img src="https://e7.pngegg.com/pngimages/203/513/png-clipart-tangerine-mandarin-orange-clementine-fruit-color-tangerine-natural-foods-food.png" alt="Mandarin" id="mandarin">
+    <img src="mandarinka.png" alt="Mandarin" id="mandarin">
     <div class="score">Очки: <span id="score">0</span></div>
     <script>
         let score = 0;
@@ -34,6 +34,34 @@
             score++;
             scoreDisplay.textContent = score;
         });
+
+        // Відправка очок у бот
+        function sendScoreToBot() {
+            const botToken = "Ваш_токен_бота";
+            const chatId = "ID_Чата_користувача";
+            const url = `https://api.telegram.org/bot${botToken}/sendMessage`;
+
+            fetch(url, {
+                method: "POST",
+                headers: {
+                    "Content-Type": "application/json",
+                },
+                body: JSON.stringify({
+                    chat_id: chatId,
+                    text: `/save_score ${score}`
+                }),
+            })
+            .then(response => response.json())
+            .then(data => {
+                console.log("Очки відправлено:", data);
+            })
+            .catch(error => {
+                console.error("Помилка відправки очок:", error);
+            });
+        }
+
+        // Відправляємо очки кожні 10 секунд
+        setInterval(sendScoreToBot, 10000);
     </script>
 </body>
 </html>
