@@ -27,61 +27,48 @@
     <div class="score">Очки: <span id="score">0</span></div>
     <script>
         const urlParams = new URLSearchParams(window.location.search);
-        const userId = urlParams.get("id"); // Отримуємо ID гравця з URL
-        const botToken = "Ваш_токен_бота";
+        const userId = urlParams.get("id");
+        const apiUrl = "http://localhost:5000"; // URL API
 
         let score = 0;
         const mandarin = document.getElementById("mandarin");
         const scoreDisplay = document.getElementById("score");
 
-        // Завантаження очок із бази даних через Telegram
+        // Завантажуємо поточні очки гравця
         function loadScore() {
-            fetch(`https://api.telegram.org/bot${botToken}/sendMessage`, {
+            fetch(`${apiUrl}/get_score`, {
                 method: "POST",
-                headers: {
-                    "Content-Type": "application/json",
-                },
-                body: JSON.stringify({
-                    chat_id: userId,
-                    text: "/start"
-                }),
+                headers: { "Content-Type": "application/json" },
+                body: JSON.stringify({ user_id: userId }),
             })
             .then(response => response.json())
             .then(data => {
-                const message = data.result[0].text;
-                const match = message.match(/\d+/); // Витягуємо очки з тексту
-                score = match ? parseInt(match[0]) : 0;
-                scoreDisplay.textContent = score;
+                if (data.status === "success") {
+                    score = data.score;
+                    scoreDisplay.textContent = score;
+                }
             })
             .catch(error => console.error("Помилка завантаження очок:", error));
         }
 
-        // Збереження очок у базі даних через Telegram
-        function saveScore() {
-            fetch(`https://api.telegram.org/bot${botToken}/sendMessage`, {
+        // Оновлюємо очки у базі
+        function updateScore(points) {
+            fetch(`${apiUrl}/update_score`, {
                 method: "POST",
-                headers: {
-                    "Content-Type": "application/json",
-                },
-                body: JSON.stringify({
-                    chat_id: userId,
-                    text: `/save_score ${userId} ${score}`
-                }),
+                headers: { "Content-Type": "application/json" },
+                body: JSON.stringify({ user_id: userId, points: points }),
             })
-            .then(response => response.json())
-            .catch(error => console.error("Помилка збереження очок:", error));
+            .catch(error => console.error("Помилка оновлення очок:", error));
         }
 
-        // Обробка натискання на мандаринку
+        // Обробка кліків на мандаринку
         mandarin.addEventListener("click", () => {
             score++;
             scoreDisplay.textContent = score;
+            updateScore(1); // Додаємо 1 очко до бази
         });
 
-        // Збереження очок при виході
-        window.addEventListener("beforeunload", saveScore);
-
-        // Завантаження очок при вході
+        // Завантажуємо очки при старті
         loadScore();
     </script>
 </body>
