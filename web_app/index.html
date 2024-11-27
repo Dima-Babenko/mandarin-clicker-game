@@ -26,50 +26,51 @@
     <img src="mandarinka.png" alt="Mandarin" id="mandarin">
     <div class="score">Очки: <span id="score">0</span></div>
     <script>
-        const userId = 12345; // Унікальний ID користувача (може бути реальним ID Telegram)
-
-        const apiUrl = "http://127.0.0.1:5000"; // Змінити на справжній URL сервера при розгортанні
-
-        // Елемент для відображення очків
+        const mandarin = document.getElementById("mandarin");
         const scoreDisplay = document.getElementById("score");
 
-        // Отримати поточний рахунок користувача
-        async function getScore() {
-            const response = await fetch(`${apiUrl}/get_score`, {
+        // Отримання user_id з URL
+        const urlParams = new URLSearchParams(window.location.search);
+        const userId = urlParams.get("id");
+
+        // Початкове значення очок
+        let score = 0;
+
+        // Функція для оновлення очок в базі
+        async function updateScore() {
+            score++;
+            scoreDisplay.textContent = score;
+
+            // Відправляємо новий рахунок на сервер
+            const response = await fetch(`/update_score`, {
                 method: "POST",
                 headers: {
-                    "Content-Type": "application/json",
+                    "Content-Type": "application/json"
                 },
-                body: JSON.stringify({ user_id: userId }),
+                body: JSON.stringify({
+                    user_id: userId,
+                    points: 1 // Додаємо одне очко
+                })
             });
+
+            if (!response.ok) {
+                console.error("Помилка збереження очків!");
+            }
+        }
+
+        // Завантаження початкових очок із сервера
+        async function loadScore() {
+            const response = await fetch(`/get_score?user_id=${userId}`);
             const data = await response.json();
-            scoreDisplay.textContent = data.points;
+            score = data.score || 0;
+            scoreDisplay.textContent = score;
         }
 
-        // Оновити рахунок
-        async function updateScore(pointsToAdd) {
-            await fetch(`${apiUrl}/update_score`, {
-                method: "POST",
-                headers: {
-                    "Content-Type": "application/json",
-                },
-                body: JSON.stringify({ user_id: userId, points: pointsToAdd }),
-            });
-        }
+        // Клік по мандаринці
+        mandarin.addEventListener("click", updateScore);
 
-        // Логіка натискання на мандаринку
-        const mandarin = document.getElementById("mandarin");
-        mandarin.addEventListener("click", async () => {
-            const currentScore = parseInt(scoreDisplay.textContent);
-            const newScore = currentScore + 1;
-            scoreDisplay.textContent = newScore;
-
-            // Оновлюємо рахунок у базі даних
-            await updateScore(1);
-        });
-
-        // Завантажити початковий рахунок при відкритті сторінки
-        getScore();
+        // Завантаження початкових очок
+        loadScore();
     </script>
 </body>
 </html>
