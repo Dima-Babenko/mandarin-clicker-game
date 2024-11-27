@@ -26,50 +26,50 @@
     <img src="mandarinka.png" alt="Mandarin" id="mandarin">
     <div class="score">Очки: <span id="score">0</span></div>
     <script>
-        const urlParams = new URLSearchParams(window.location.search);
-        const userId = urlParams.get("id");
-        const apiUrl = "http://localhost:5000"; // URL API
+        const userId = 12345; // Унікальний ID користувача (може бути реальним ID Telegram)
 
-        let score = 0;
-        const mandarin = document.getElementById("mandarin");
+        const apiUrl = "http://127.0.0.1:5000"; // Змінити на справжній URL сервера при розгортанні
+
+        // Елемент для відображення очків
         const scoreDisplay = document.getElementById("score");
 
-        // Завантажуємо поточні очки гравця
-        function loadScore() {
-            fetch(`${apiUrl}/get_score`, {
+        // Отримати поточний рахунок користувача
+        async function getScore() {
+            const response = await fetch(`${apiUrl}/get_score`, {
                 method: "POST",
-                headers: { "Content-Type": "application/json" },
+                headers: {
+                    "Content-Type": "application/json",
+                },
                 body: JSON.stringify({ user_id: userId }),
-            })
-            .then(response => response.json())
-            .then(data => {
-                if (data.status === "success") {
-                    score = data.score;
-                    scoreDisplay.textContent = score;
-                }
-            })
-            .catch(error => console.error("Помилка завантаження очок:", error));
+            });
+            const data = await response.json();
+            scoreDisplay.textContent = data.points;
         }
 
-        // Оновлюємо очки у базі
-        function updateScore(points) {
-            fetch(`${apiUrl}/update_score`, {
+        // Оновити рахунок
+        async function updateScore(pointsToAdd) {
+            await fetch(`${apiUrl}/update_score`, {
                 method: "POST",
-                headers: { "Content-Type": "application/json" },
-                body: JSON.stringify({ user_id: userId, points: points }),
-            })
-            .catch(error => console.error("Помилка оновлення очок:", error));
+                headers: {
+                    "Content-Type": "application/json",
+                },
+                body: JSON.stringify({ user_id: userId, points: pointsToAdd }),
+            });
         }
 
-        // Обробка кліків на мандаринку
-        mandarin.addEventListener("click", () => {
-            score++;
-            scoreDisplay.textContent = score;
-            updateScore(1); // Додаємо 1 очко до бази
+        // Логіка натискання на мандаринку
+        const mandarin = document.getElementById("mandarin");
+        mandarin.addEventListener("click", async () => {
+            const currentScore = parseInt(scoreDisplay.textContent);
+            const newScore = currentScore + 1;
+            scoreDisplay.textContent = newScore;
+
+            // Оновлюємо рахунок у базі даних
+            await updateScore(1);
         });
 
-        // Завантажуємо очки при старті
-        loadScore();
+        // Завантажити початковий рахунок при відкритті сторінки
+        getScore();
     </script>
 </body>
 </html>
